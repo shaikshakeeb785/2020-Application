@@ -1,0 +1,38 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/security
+    http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <beans:import resource="ApplicationContext.xml"/>
+
+    <http auto-config="true" use-expressions="true">
+        <access-denied-handler error-page="/403" />
+
+        <intercept-url pattern="/buyBook/{bookid}" access="hasRole('ROLE_CUSTOMER')"></intercept-url>
+        <intercept-url pattern="/profile/{emailId}" access="hasRole('ROLE_CUSTOMER')"></intercept-url>
+        <form-login
+                login-page="/login"
+                default-target-url="/homePage"
+                authentication-failure-url="/login?error"
+                username-parameter="username"
+                password-parameter="password"
+                authentication-failure-forward-url="/denied" authentication-success-handler-ref="successHandler"/>
+        <logout logout-success-url="/login?logout"/>
+        <!-- enable csrf protection -->
+        <csrf/>
+    </http>
+    <beans:bean id="successHandler" class="com.spiderBookStall.SuccessHandler.SuccessHandler"/>
+    <beans:bean id="passwordEncoder" class="org.springframework.security.crypto.password.NoOpPasswordEncoder"/>
+
+    <authentication-manager>
+        <authentication-provider>
+
+            <jdbc-user-service data-source-ref="datasource"
+                               users-by-username-query="SELECT  email,password,1 FROM customerregistration WHERE email=?"
+                               authorities-by-username-query="SELECT  email,role FROM customerregistration WHERE email=?"/>
+        </authentication-provider>
+    </authentication-manager>
+</beans:beans>
